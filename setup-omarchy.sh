@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # Omarchy System Settings Setup
-# Configures Herdr prefix and Idle timeouts
+# Configures Herdr prefix and native Omarchy power management
 # =============================================================================
 
 GREEN='\033[0;32m'
@@ -20,40 +20,15 @@ if [ -f "$CONFIG_FILE" ]; then
     log_info "Herdr prefix set to 'ctrl+b'"
 fi
 
-# 2. Idle Timeout Configuration (1 Hour Screensaver)
-log_info "Configuring 1-hour screensaver timeout..."
+# 2. Native Omarchy Power Management
+log_info "Configuring Omarchy native idle/screensaver settings..."
 
-# 确保 hypridle 存在
-if ! command -v hypridle &> /dev/null; then
-    sudo pacman -S --needed --noconfirm hypridle
+# 确保 idle 行为受 Omarchy 控制
+if command -v omarchy &> /dev/null; then
+    omarchy toggle idle allow-idle
+    log_info "Idle behavior set to allow-idle."
+else
+    log_warn "omarchy command not found, skipping power settings."
 fi
 
-mkdir -p "$HOME/.config/hypr/"
-cat > "$HOME/.config/hypr/hypridle.conf" << EOF
-general {
-    lock_cmd = pidof hyprlock || hyprlock
-    before_sleep_cmd = loginctl lock-session
-    after_sleep_cmd = hyprctl dispatch dpms on
-}
-
-listener {
-    timeout = 3600 # 1 hour
-    on-timeout = loginctl lock-session
-}
-EOF
-
-# 确保 hypridle 随 Hyprland 启动
-# 在 Omarchy 中，通常通过 hyprland.lua 或 autostart.lua 处理
-if [ -f "$HOME/.config/hypr/autostart.lua" ]; then
-    if ! grep -q "hypridle" "$HOME/.config/hypr/autostart.lua"; then
-        echo 'os.execute("hypridle &")' >> "$HOME/.config/hypr/autostart.lua"
-        log_info "Added hypridle to autostart.lua"
-    fi
-fi
-
-# 立即启动以生效
-pgrep hypridle && killall hypridle
-hypridle &
-
-log_info "Screensaver timeout set to 1 hour."
-log_info "Omarchy system settings setup complete."
+log_info "Omarchy system settings (Herdr + Power) updated."
