@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
-# Omarchy Shell Prefix Setup
-# Configures the shell prefix (header) to Ctrl + B
+# Herdr Prefix Setup
+# Configures the Herdr prefix to Ctrl + B
 # =============================================================================
 
 GREEN='\033[0;32m'
@@ -9,24 +9,21 @@ NC='\033[0m'
 log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 
 echo "=========================================="
-echo " Omarchy Shell Prefix Setup"
+echo " Herdr Prefix Setup"
 echo "=========================================="
 
-# ------------------------------------------
-# Update shell prefix in ~/.bashrc or config
-# Assuming Omarchy shell uses a specific variable or config file
-# ------------------------------------------
-# If Omarchy uses a standard format for its header prefix:
-CONFIG_FILE="$HOME/.config/omarchy/shell.conf"
+CONFIG_FILE="$HOME/.config/herdr/config.toml"
 
-mkdir -p "$(dirname "$CONFIG_FILE")"
-
-# Update or create the configuration
-if grep -q "PREFIX=" "$CONFIG_FILE"; then
-    sed -i 's/^PREFIX=.*/PREFIX="Ctrl+B"/' "$CONFIG_FILE"
+if [ -f "$CONFIG_FILE" ]; then
+    # 修改 TOML 中的 prefix 设置
+    sed -i 's/^prefix = .*/prefix = "ctrl+b"/' "$CONFIG_FILE"
+    log_info "Herdr prefix set to 'ctrl+b' in $CONFIG_FILE"
+    
+    # 重新加载配置
+    if command -v herdr &> /dev/null; then
+        herdr server reload-config
+        log_info "Herdr configuration reloaded."
+    fi
 else
-    echo 'PREFIX="Ctrl+B"' >> "$CONFIG_FILE"
+    log_info "Herdr config file not found at $CONFIG_FILE"
 fi
-
-log_info "Omarchy header prefix set to 'Ctrl + B' in $CONFIG_FILE"
-log_info "Shell configuration complete."
