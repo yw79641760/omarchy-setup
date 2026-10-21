@@ -20,15 +20,16 @@ if [ -f "$CONFIG_FILE" ]; then
     log_info "Herdr prefix set to 'ctrl+b'"
 fi
 
-# 2. Native Omarchy Power Management
+# 2. Native Omarchy Power Management (1 Hour Screensaver)
 log_info "Configuring Omarchy native idle/screensaver settings..."
 
-# 确保 idle 行为受 Omarchy 控制
-if command -v omarchy &> /dev/null; then
-    omarchy toggle idle allow-idle
-    log_info "Idle behavior set to allow-idle."
+SHELL_JSON="$HOME/.config/omarchy/shell.json"
+if [ -f "$SHELL_JSON" ]; then
+    # 修改 screensaver 时间为 3600 秒
+    sed -i 's/"screensaver": [0-9]*/"screensaver": 3600/' "$SHELL_JSON"
+    log_info "Screensaver timeout set to 3600s (1 hour) in $SHELL_JSON"
 else
-    log_warn "omarchy command not found, skipping power settings."
+    log_warn "Omarchy shell.json not found, skipping screensaver config."
 fi
 
 log_info "Omarchy system settings (Herdr + Power) updated."
