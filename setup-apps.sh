@@ -55,22 +55,33 @@ omarchy plugin enable tailscale 2>/dev/null || log_warn "Could not enable tailsc
 omarchy plugin list 2>/dev/null | grep -E "dropbox|tailscale" || log_info "Plugin status check complete"
 
 # ==========================================
-# Install Services
+# Initialize Services
 # ==========================================
-log_info "Installing services..."
+log_info "Initializing services..."
 
-# Dropbox service (omarchy managed)
-omarchy install service dropbox 2>/dev/null || log_warn "Dropbox service install failed or already running"
+# Initialize Dropbox
+if command -v dropbox-cli &> /dev/null; then
+    log_info "Initializing Dropbox..."
+    dropbox-cli autostart y
+    dropbox-cli start
+    if dropbox-cli running; then
+        log_info "Dropbox is running: $(dropbox-cli status)"
+    else
+        log_warn "Dropbox failed to start. Please authenticate via web."
+    fi
+else
+    log_warn "dropbox-cli not found, skipping initialization."
+fi
 
-# Tailscale service (omarchy managed)
-omarchy install service tailscale 2>/dev/null || log_warn "Tailscale service install failed or already running"
-
-# Bitwarden service (using systemd as omarchy might not have wrapper)
-log_info "Installing Bitwarden service..."
-if ! systemctl is-enabled --quiet bitwarden_rs.service 2>/dev/null; then
-    # Try to enable the service if it exists
-    systemctl enable bitwarden 2>/dev/null || true
-    systemctl start bitwarden 2>/dev/null || log_warn "Bitwarden service not found or failed to start"
+# Initialize Tailscale
+if command -v tailscale &> /dev/null; then
+    log_info "Initializing Tailscale..."
+    tailscale whoami
+    log_info "Bringing up Tailscale (this may prompt for login)..."
+    sudo tailscale up || log_warn "Tailscale up failed, please run manually."
+    tailscale status
+else
+    log_warn "tailscale not found, skipping initialization."
 fi
 
 # ==========================================
@@ -83,7 +94,7 @@ echo "=========================================="
 echo ""
 echo "Installed Applications:"
 echo "  - Google Chrome"
-echo "  - Feishu (DingTalk)"
+echo "  - Feishu"
 echo "  - Dropbox + CLI"
 echo "  - Tailscale"
 echo "  - Blueman (Bluetooth Manager)"
