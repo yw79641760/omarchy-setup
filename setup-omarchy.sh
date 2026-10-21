@@ -32,7 +32,32 @@ if command -v omarchy &> /dev/null; then
     log_info "Omarchy set to 'stay-awake' mode."
 fi
 
-# 3. Screensaver timeout to 3600s
+# 3. Workspace switching: FIFO order (wrap_windows)
+log_info "Configuring workspace switching to FIFO order..."
+LOOKNFEEL="$HOME/.config/hypr/looknfeel.lua"
+if [ -f "$LOOKNFEEL" ]; then
+    # Check if wrap_windows is already configured
+    if ! grep -q "wrap_windows" "$LOOKNFEEL"; then
+        # Add wrap_windows config at the beginning of the file (after comments)
+        sed -i '1,/^$/ { /^-- Change the default/a\
+-- Enable FIFO workspace switching\
+hl.config({\
+  general = {\
+    wrap_windows = true,\
+  },\
+})\
+' "$LOOKNFEEL"
+        log_info "Added wrap_windows = true to looknfeel.lua"
+    else
+        log_info "wrap_windows already configured in looknfeel.lua"
+    fi
+    # Reload Hyprland to apply
+    hyprctl reload > /dev/null 2>&1 || true
+else
+    log_warn "looknfeel.lua not found, skipping workspace config."
+fi
+
+# 4. Screensaver timeout to 3600s
 SHELL_JSON="$HOME/.config/omarchy/shell.json"
 if [ -f "$SHELL_JSON" ]; then
     sed -i 's/"screensaver": [0-9]*/"screensaver": 3600/' "$SHELL_JSON"
