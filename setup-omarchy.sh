@@ -22,6 +22,31 @@ if [ -f "$CONFIG_FILE" ]; then
     log_info "Herdr prefix set to 'ctrl+b'"
 fi
 
+# 2. Workspace switching: FIFO (cycling) instead of FILO
+log_info "Configuring workspace switching to FIFO order..."
+BINDINGS="$HOME/.config/hypr/bindings.lua"
+if [ -f "$BINDINGS" ]; then
+    # Check if the FIFO override is already present
+    if ! grep -q "wrap = true" "$BINDINGS"; then
+        cat >> "$BINDINGS" << 'EOF'
+
+-- Override workspace switching to be FIFO (cycling) instead of FILO
+hl.unbind("SUPER + TAB")
+hl.unbind("SUPER + SHIFT + TAB")
+
+o.bind("SUPER + TAB", "Next workspace (cycling)", hl.dsp.focus({ workspace = "e+1", wrap = true }))
+o.bind("SUPER + SHIFT + TAB", "Previous workspace (cycling)", hl.dsp.focus({ workspace = "e-1", wrap = true }))
+EOF
+        log_info "Added FIFO workspace switching to bindings.lua"
+        # Reload Hyprland to apply
+        hyprctl reload > /dev/null 2>&1 || true
+    else
+        log_info "FIFO workspace switching already configured"
+    fi
+else
+    log_warn "bindings.lua not found, skipping workspace config."
+fi
+
 # 2. Power Management (Use Omarchy native commands)
 log_info "Configuring native Omarchy power management..."
 

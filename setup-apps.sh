@@ -36,7 +36,7 @@ done
 # ==========================================
 log_info "Installing AUR packages via yay..."
 
-AUR_PKGS="clash-verge-rev-bin oh-my-pi-bin wakatime bitwarden dropbox-cli"
+AUR_PKGS="clash-verge-rev-bin wakatime bitwarden dropbox-cli"
 
 for pkg in $AUR_PKGS; do
     log_info "Attempting to install $pkg..."
@@ -100,7 +100,6 @@ echo "  - Dropbox + CLI"
 echo "  - Tailscale"
 echo "  - Blueman (Bluetooth Manager)"
 echo "  - Clash Verge Rev (AUR)"
-echo "  - Oh My Pi (AUR)"
 echo "  - WakaTime (AUR)"
 echo ""
 echo "Services Enabled:"
