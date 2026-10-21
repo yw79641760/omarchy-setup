@@ -38,33 +38,9 @@ log_info "✅ pi-provider-litellm plugin installed."
 echo ""
 
 # -----------------------------------------------------------------------------
-# Step 3: Create ~/.pi/agent/models.json
+# Step 3: Interactive configuration - fill in LiteLLM values
 # -----------------------------------------------------------------------------
-log_info "Step 3: Creating models.json template..."
-mkdir -p "$HOME/.pi/agent"
-
-cat > "$HOME/.pi/agent/models.json" << 'EOF'
-{
-  "providers": {
-    "litellm": {
-      "baseUrl": "$LITELLM_BASE_URL",
-      "api": "openai-completions",
-      "apiKey": "$LITELLM_API_KEY",
-      "headers": {
-        "CF-Access-Client-Id": "$LITELLM_CF_CLIENT_ID",
-        "CF-Access-Client-Secret": "$LITELLM_CF_CLIENT_SECRET"
-      }
-    }
-  }
-}
-EOF
-log_info "✅ models.json created with placeholder values."
-echo ""
-
-# -----------------------------------------------------------------------------
-# Step 4: Interactive configuration - fill in LiteLLM values
-# -----------------------------------------------------------------------------
-log_info "Step 4: Configuring LiteLLM credentials..."
+log_info "Step 3: Configuring LiteLLM credentials..."
 echo "Please provide the following LiteLLM configuration values:"
 echo "(You can press Enter to accept the defaults shown in brackets)"
 echo ""
@@ -102,17 +78,19 @@ fi
 echo ""
 
 # -----------------------------------------------------------------------------
-# Step 5: Source ~/.bashrc
+# Step 4: Source ~/.bashrc
 # -----------------------------------------------------------------------------
-log_info "Step 5: Sourcing ~/.bashrc..."
+log_info "Step 4: Sourcing ~/.bashrc..."
 source "$BASHRC"
 log_info "✅ ~/.bashrc sourced successfully."
 echo ""
 
 # -----------------------------------------------------------------------------
-# Step 6: Update models.json with actual values
+# Step 5: Create ~/.pi/agent/models.json
 # -----------------------------------------------------------------------------
-log_info "Step 6: Updating models.json with real values..."
+log_info "Step 5: Creating models.json..."
+mkdir -p "$HOME/.pi/agent"
+
 cat > "$HOME/.pi/agent/models.json" << EOF
 {
   "providers": {
@@ -128,21 +106,21 @@ cat > "$HOME/.pi/agent/models.json" << EOF
   }
 }
 EOF
-log_info "✅ models.json updated with real values."
+log_info "✅ models.json created."
 echo ""
 
 # -----------------------------------------------------------------------------
-# Step 7: Start pi in non-interactive mode
+# Step 6: Start pi in non-interactive mode
 # -----------------------------------------------------------------------------
-log_info "Step 7: Starting pi in non-interactive mode..."
+log_info "Step 6: Starting pi in non-interactive mode..."
 pi -p "hello world"
 log_info "✅ Pi agent started."
 echo ""
 
 # -----------------------------------------------------------------------------
-# Step 8: Install AI skills for enhanced capabilities
+# Step 7: Install AI skills for enhanced capabilities
 # -----------------------------------------------------------------------------
-log_info "Step 8: Installing AI skills..."
+log_info "Step 7: Installing AI skills..."
 
 log_info "Installing find-skills from Vercel Labs..."
 npx skills add https://github.com/vercel-labs/skills --skill find-skills
