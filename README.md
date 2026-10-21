@@ -110,7 +110,10 @@ Configures the Pi coding agent with:
    - `find-skills` - Skill discovery tool
    - `agent-browser` - Browser automation for agents
 
-7. **Greeting**: Starts Pi with "hello world"
+7. **Greeting**: Starts Pi in non-interactive mode:
+   ```bash
+   pi -p "hello world"
+   ```
 
 ## 💻 Prerequisites
 

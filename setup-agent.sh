@@ -105,10 +105,10 @@ echo "✅ ~/.pi/agent/models.json created."
 echo ""
 
 # -----------------------------------------------------------------------------
-# Step 6: Start pi with "hello world" greetings
+# Step 6: Start pi in non-interactive mode
 # -----------------------------------------------------------------------------
-echo "Starting pi with hello world greetings..."
-pi "hello world"
+echo "Starting pi in non-interactive mode..."
+pi -p "hello world"
 echo ""
 
 # -----------------------------------------------------------------------------
