@@ -118,17 +118,60 @@ log_info "✅ Pi agent started."
 echo ""
 
 # -----------------------------------------------------------------------------
-# Step 7: Install AI skills for enhanced capabilities
+# Step 7: Install find-skills
 # -----------------------------------------------------------------------------
-log_info "Step 7: Installing AI skills..."
-
-log_info "Installing find-skills from Vercel Labs..."
+log_info "Step 7: Installing find-skills from Vercel Labs..."
 npx skills add https://github.com/vercel-labs/skills --skill find-skills
 log_info "✅ find-skills installed."
+echo ""
 
-log_info "Installing agent-browser from Vercel Labs..."
-npx skills add https://github.com/vercel-labs/agent-browser --skill agent-browser
-log_info "✅ agent-browser installed."
+# -----------------------------------------------------------------------------
+# Step 8: Install agent-browser
+# -----------------------------------------------------------------------------
+log_info "Step 8: Setting up agent-browser..."
+
+# 8.1: Find chromium executable path
+CHROMIUM_PATH=$(which chromium 2>/dev/null || which chromium-browser 2>/dev/null || which google-chrome 2>/dev/null || echo "")
+if [ -z "$CHROMIUM_PATH" ]; then
+    log_warn "⚠️ Chromium not found. Please install chromium first."
+else
+    log_info "Found Chromium at: $CHROMIUM_PATH"
+
+    # 8.2: Add AGENT_BROWSER_EXECUTABLE_PATH to ~/.bashrc
+    BASHRC="$HOME/.bashrc"
+    if ! grep -q "AGENT_BROWSER_EXECUTABLE_PATH" "$BASHRC" 2>/dev/null; then
+        echo "" >> "$BASHRC"
+        echo "# Agent Browser Configuration" >> "$BASHRC"
+        echo "export AGENT_BROWSER_EXECUTABLE_PATH=\"$CHROMIUM_PATH\"" >> "$BASHRC"
+        log_info "✅ AGENT_BROWSER_EXECUTABLE_PATH added to $BASHRC"
+    else
+        log_warn "⚠️ AGENT_BROWSER_EXECUTABLE_PATH already present in $BASHRC."
+    fi
+
+    # 8.3: Source ~/.bashrc
+    source "$BASHRC"
+    log_info "✅ ~/.bashrc sourced successfully."
+
+    # 8.4: Install agent-browser globally via npm
+    log_info "Installing agent-browser globally..."
+    npm install -g agent-browser
+    log_info "✅ agent-browser installed globally."
+
+    # 8.5: Install agent-browser with dependencies
+    log_info "Installing agent-browser with dependencies..."
+    AGENT_BROWSER_EXECUTABLE_PATH="$CHROMIUM_PATH" agent-browser install --with-deps
+    log_info "✅ agent-browser installed with dependencies."
+
+    # 8.6: Check installation
+    log_info "Checking agent-browser installation..."
+    agent-browser doctor
+    log_info "✅ agent-browser doctor check complete."
+
+    # 8.7: Install agent-browser skill
+    log_info "Installing agent-browser skill from Vercel Labs..."
+    npx skills add https://github.com/vercel-labs/agent-browser --skill agent-browser
+    log_info "✅ agent-browser skill installed."
+fi
 echo ""
 
 echo "========================================="
