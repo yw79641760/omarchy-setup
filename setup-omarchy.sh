@@ -1,7 +1,9 @@
 #!/bin/bash
 # =============================================================================
 # Omarchy System Settings Setup
-# Configures Herdr prefix and native Omarchy power management
+# 1. Herdr Prefix to Ctrl+B
+# 2. Prevent sleep/suspend while plugged in (systemd-inhibit)
+# 3. Screensaver timeout to 1h
 # =============================================================================
 
 GREEN='\033[0;32m'
@@ -21,15 +23,34 @@ if [ -f "$CONFIG_FILE" ]; then
 fi
 
 # 2. Native Omarchy Power Management (1 Hour Screensaver)
-log_info "Configuring Omarchy native idle/screensaver settings..."
-
+log_info "Configuring 1-hour screensaver timeout..."
 SHELL_JSON="$HOME/.config/omarchy/shell.json"
 if [ -f "$SHELL_JSON" ]; then
-    # 修改 screensaver 时间为 3600 秒
     sed -i 's/"screensaver": [0-9]*/"screensaver": 3600/' "$SHELL_JSON"
-    log_info "Screensaver timeout set to 3600s (1 hour) in $SHELL_JSON"
-else
-    log_warn "Omarchy shell.json not found, skipping screensaver config."
+    log_info "Screensaver timeout set to 3600s (1 hour)."
 fi
 
-log_info "Omarchy system settings (Herdr + Power) updated."
+# 3. Persistent Inhibit (Never suspend/sleep)
+log_info "Enabling persistent sleep inhibition..."
+INHIBIT_SERVICE="$HOME/.config/systemd/user/omarchy-inhibit-sleep.service"
+mkdir -p "$(dirname "$INHIBIT_SERVICE")"
+
+cat > "$INHIBIT_SERVICE" << EOF
+[Unit]
+Description=Inhibit sleep while plugged in
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=systemd-inhibit --what=sleep --who="Omarchy Setup" --why="Prevent sleep while plugged in" sleep infinity
+Restart=always
+
+[Install]
+WantedBy=graphical-session.target
+EOF
+
+systemctl --user daemon-reload
+systemctl --user enable --now omarchy-inhibit-sleep.service
+
+log_info "System will now prevent sleep but trigger screensaver after 1 hour."
+log_info "Omarchy system settings complete."
