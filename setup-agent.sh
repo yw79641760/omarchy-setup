@@ -1,10 +1,18 @@
 #!/bin/bash
-
-if ! command -v yay #!/bin/bash> /dev/null; then echo "Error: yay not installed"; exit 1; fi
 # =============================================================================
 # Pi Agent Bootstrap Script
 # Interactive setup for pi agent with LiteLLM provider configuration
 # =============================================================================
+
+GREEN='\033[0;32m'
+NC='\033[0m'
+log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
+log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+
+if ! command -v yay &> /dev/null; then
+    echo "Error: yay not installed. Please install yay first."
+    exit 1
+fi
 
 set -e
 
@@ -14,8 +22,49 @@ echo "========================================="
 echo ""
 
 # -----------------------------------------------------------------------------
-# Step 1: Interactive configuration - fill in LiteLLM values
+# Step 1: Install pi agent
 # -----------------------------------------------------------------------------
+log_info "Step 1: Installing pi agent..."
+yay -S pi --noconfirm
+log_info "✅ pi agent installed."
+echo ""
+
+# -----------------------------------------------------------------------------
+# Step 2: Install pi-provider-litellm plugin
+# -----------------------------------------------------------------------------
+log_info "Step 2: Installing pi-provider-litellm plugin..."
+pi install npm:pi-provider-litellm
+log_info "✅ pi-provider-litellm plugin installed."
+echo ""
+
+# -----------------------------------------------------------------------------
+# Step 3: Create ~/.pi/agent/models.json
+# -----------------------------------------------------------------------------
+log_info "Step 3: Creating models.json template..."
+mkdir -p "$HOME/.pi/agent"
+
+cat > "$HOME/.pi/agent/models.json" << 'EOF'
+{
+  "providers": {
+    "litellm": {
+      "baseUrl": "$LITELLM_BASE_URL",
+      "api": "openai-completions",
+      "apiKey": "$LITELLM_API_KEY",
+      "headers": {
+        "CF-Access-Client-Id": "$LITELLM_CF_CLIENT_ID",
+        "CF-Access-Client-Secret": "$LITELLM_CF_CLIENT_SECRET"
+      }
+    }
+  }
+}
+EOF
+log_info "✅ models.json created with placeholder values."
+echo ""
+
+# -----------------------------------------------------------------------------
+# Step 4: Interactive configuration - fill in LiteLLM values
+# -----------------------------------------------------------------------------
+log_info "Step 4: Configuring LiteLLM credentials..."
 echo "Please provide the following LiteLLM configuration values:"
 echo "(You can press Enter to accept the defaults shown in brackets)"
 echo ""
@@ -46,85 +95,64 @@ if ! grep -q "^export LITELLM_BASE_URL" "$BASHRC" 2>/dev/null; then
         echo "export LITELLM_CF_CLIENT_ID=\"$LITELLM_CF_CLIENT_ID\""
         echo "export LITELLM_CF_CLIENT_SECRET=\"$LITELLM_CF_CLIENT_SECRET\""
     } >> "$BASHRC"
-    echo "✅ LiteLLM configuration appended to $BASHRC"
+    log_info "✅ LiteLLM configuration appended to $BASHRC"
 else
-    echo "⚠️ LiteLLM configuration already present in $BASHRC. Skipping append."
+    log_warn "⚠️ LiteLLM configuration already present in $BASHRC. Skipping append."
 fi
+echo ""
 
 # -----------------------------------------------------------------------------
-# Step 2: Source ~/.bashrc
+# Step 5: Source ~/.bashrc
 # -----------------------------------------------------------------------------
-echo ""
-echo "Sourcing ~/.bashrc to apply changes..."
+log_info "Step 5: Sourcing ~/.bashrc..."
 source "$BASHRC"
-echo "✅ ~/.bashrc sourced successfully."
+log_info "✅ ~/.bashrc sourced successfully."
 echo ""
 
 # -----------------------------------------------------------------------------
-# Step 3: Install pi agent
+# Step 6: Update models.json with actual values
 # -----------------------------------------------------------------------------
-echo "Installing pi agent via yay..."
-yay -S pi
-echo "✅ pi agent installed."
-echo ""
-
-# -----------------------------------------------------------------------------
-# Step 4: Install pi-provider-litellm plugin
-# -----------------------------------------------------------------------------
-echo "Installing pi-provider-litellm plugin..."
-pi install npm:pi-provider-litellm
-echo "✅ pi-provider-litellm plugin installed."
-echo ""
-
-# -----------------------------------------------------------------------------
-# Step 5: Create ~/.pi/agent/models.json
-# -----------------------------------------------------------------------------
-echo "Creating ~/.pi/agent/models.json configuration file..."
-mkdir -p "$HOME/.pi/agent"
-
-# Note: $LITELLM_BASE_URL is expanded to the real value here because pi
-# cannot render it from env vars. apiKey/headers are kept as literal $VAR
-# references — pi renders those from the environment at runtime.
-cat > "$HOME/.pi/agent/models.json" <<EOF
+log_info "Step 6: Updating models.json with real values..."
+cat > "$HOME/.pi/agent/models.json" << EOF
 {
   "providers": {
     "litellm": {
       "baseUrl": "$LITELLM_BASE_URL",
       "api": "openai-completions",
-      "apiKey": "\$LITELLM_API_KEY",
+      "apiKey": "\\$LITELLM_API_KEY",
       "headers": {
-        "CF-Access-Client-Id": "\$LITELLM_CF_CLIENT_ID",
-        "CF-Access-Client-Secret": "\$LITELLM_CF_CLIENT_SECRET"
+        "CF-Access-Client-Id": "\\$LITELLM_CF_CLIENT_ID",
+        "CF-Access-Client-Secret": "\\$LITELLM_CF_CLIENT_SECRET"
       }
     }
   }
 }
 EOF
-
-echo "✅ ~/.pi/agent/models.json created."
+log_info "✅ models.json updated with real values."
 echo ""
 
 # -----------------------------------------------------------------------------
-# Step 6: Start pi in non-interactive mode
+# Step 7: Start pi in non-interactive mode
 # -----------------------------------------------------------------------------
-echo "Starting pi in non-interactive mode..."
+log_info "Step 7: Starting pi in non-interactive mode..."
 pi -p "hello world"
+log_info "✅ Pi agent started."
 echo ""
 
 # -----------------------------------------------------------------------------
-# Step 7: Install AI skills for enhanced capabilities
+# Step 8: Install AI skills for enhanced capabilities
 # -----------------------------------------------------------------------------
-echo "Installing AI skills for enhanced capabilities..."
+log_info "Step 8: Installing AI skills..."
 
-echo "Installing find-skills from Vercel Labs..."
+log_info "Installing find-skills from Vercel Labs..."
 npx skills add https://github.com/vercel-labs/skills --skill find-skills
-echo "✅ find-skills installed."
+log_info "✅ find-skills installed."
 
-echo "Installing agent-browser from Vercel Labs..."
+log_info "Installing agent-browser from Vercel Labs..."
 npx skills add https://github.com/vercel-labs/agent-browser --skill agent-browser
-echo "✅ agent-browser installed."
-
+log_info "✅ agent-browser installed."
 echo ""
+
 echo "========================================="
 echo "Bootstrap complete! Pi agent is ready."
 echo "========================================="
