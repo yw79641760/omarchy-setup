@@ -19,7 +19,7 @@ echo "=========================================="
 # ==========================================
 log_info "Installing system packages via pacman..."
 
-SYSTEM_PKGS="google-chrome feishu tailscale blueman visual-studio-code-bin"
+SYSTEM_PKGS="google-chrome feishu tailscale blueman visual-studio-code-bin obsidian"
 
 # Check each package
 for pkg in $SYSTEM_PKGS; do
@@ -96,6 +96,7 @@ echo "Installed Applications:"
 echo "  - Google Chrome"
 echo "  - Feishu"
 echo "  - Visual Studio Code"
+echo "  - Obsidian"
 echo "  - Dropbox + CLI"
 echo "  - Tailscale"
 echo "  - Blueman (Bluetooth Manager)"
